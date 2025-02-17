@@ -19,8 +19,8 @@ jobs:
 
       - name: Build PDF from Markdown
         run: |
-          chmod +x build_pdf.sh
-          ./build_pdf.sh
+          chmod +x build-pdf.sh
+          ./build-pdf.sh
 
       - name: Upload PDF to SharePoint
         env:
