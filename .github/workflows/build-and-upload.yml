@@ -21,7 +21,7 @@ jobs:
         run: |
           TOKEN_RESPONSE=$(curl -X POST \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=https://tynesidetech.sharepoint.com/.default" \
+            -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default" \
             https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token)
           echo "Token Response: $TOKEN_RESPONSE"
           ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
@@ -30,6 +30,8 @@ jobs:
             exit 1
           fi
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      # -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=https://tynesidetech.sharepoint.com/.default" \
 
       - name: Test Graph Auth
         env:
