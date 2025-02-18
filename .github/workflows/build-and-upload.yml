@@ -12,6 +12,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Verify Folder Exists in SharePoint
+        env:
+          SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
+          SHAREPOINT_DOC_LIB: ${{ secrets.SHAREPOINT_DOC_LIB }}
+          SHAREPOINT_USERNAME: ${{ secrets.SHAREPOINT_USERNAME }}
+          SHAREPOINT_PASSWORD: ${{ secrets.SHAREPOINT_PASSWORD }}
+        run: |
+          echo "Checking if folder $SHAREPOINT_DOC_LIB exists..."
+          curl --fail --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
+            "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')"
+          echo "Folder exists."
+
       - name: Set up Pandoc
         run: |
           sudo apt-get update
@@ -24,11 +36,6 @@ jobs:
 
       - name: List Workspace Files
         run: ls -la
-
-      - name: Debug - Show URL
-        run: |
-          FULL_URL="$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
-          echo "Constructed URL: $FULL_URL"
   
       - name: Upload PDF to SharePoint
         env:
