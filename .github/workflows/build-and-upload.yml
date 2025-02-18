@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Get SharePoint Access Token
-        id: get_token_debug
+        id: get_token
         env:
           TENANT_ID: ${{ secrets.TENANT_ID }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
@@ -30,13 +30,7 @@ jobs:
             exit 1
           fi
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-
-      - name: DEBUG - Print Full Token
-        env:
-          ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
-        run: |
-          echo "ACCESS_TOKEN=$ACCESS_TOKEN"
-
+      
       - name: Test Access Token by Getting Site Info
         env:
           SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
@@ -68,14 +62,3 @@ jobs:
             --header "Content-Type: application/json;odata=verbose" \
             --data-binary @output.pdf \
             "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
-  
-      # - name: Upload PDF to SharePoint
-      #   env:
-      #     SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
-      #     SHAREPOINT_DOC_LIB: ${{ secrets.SHAREPOINT_DOC_LIB }}
-      #     SHAREPOINT_USERNAME: ${{ secrets.SHAREPOINT_USERNAME }}
-      #     SHAREPOINT_PASSWORD: ${{ secrets.SHAREPOINT_PASSWORD }}
-      #   run: |
-      #     curl --fail --verbose --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
-      #       -T output.pdf \
-      #       "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
