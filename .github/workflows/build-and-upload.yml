@@ -21,8 +21,15 @@ jobs:
         run: |
           TOKEN_RESPONSE=$(curl -X POST \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=https://tynesidetech.sharepoint.com/.default" \
+            -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=https%3A%2F%2Ftynesidetech.sharepoint.com%2F.default" \
             https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token)
+
+            # # Replace {tenant} with your tenant!
+            # curl -X POST \
+            # -H "Content-Type: application/x-www-form-urlencoded" \
+            # -d 'client_id=${CLIENT_ID}&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default&client_secret=${CLIENT_SECRET}&grant_type=client_credentials' \
+            # 'https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token'
+            
           echo "Token Response: $TOKEN_RESPONSE"
           ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
           if [ "$ACCESS_TOKEN" = "null" ] || [ -z "$ACCESS_TOKEN" ]; then
