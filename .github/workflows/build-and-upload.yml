@@ -11,22 +11,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      # - name: Get SharePoint Access Token
-      #   id: get_token
-      #   env:
-      #     TENANT_ID: ${{ secrets.TENANT_ID }}
-      #     CLIENT_ID: ${{ secrets.CLIENT_ID }}
-      #     CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-      #   run: |
-      #     TOKEN_RESPONSE=$(curl -X POST \
-      #       -H "Content-Type: application/x-www-form-urlencoded" \
-      #       -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=https://tynesidetech.sharepoint.com/.default" \
-      #       https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token)
-      #     echo "$TOKEN_RESPONSE" > token.json
-      #     ACCESS_TOKEN=$(jq -r '.access_token' token.json)
-      #     echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-          
+      
       - name: Get SharePoint Access Token
         id: get_token_debug
         env:
@@ -45,19 +30,17 @@ jobs:
             exit 1
           fi
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-     
-      # - name: Verify Folder Exists in SharePoint
-      #   env:
-      #     SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
-      #     SHAREPOINT_DOC_LIB: ${{ secrets.SHAREPOINT_DOC_LIB }}
-      #     SHAREPOINT_USERNAME: ${{ secrets.SHAREPOINT_USERNAME }}
-      #     SHAREPOINT_PASSWORD: ${{ secrets.SHAREPOINT_PASSWORD }}
-      #   run: |
-      #     echo "Checking if folder $SHAREPOINT_DOC_LIB exists..."
-      #     curl --fail --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
-      #       "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')"
-      #     echo "Folder exists."
 
+      - name: Test Access Token by Getting Site Info
+        env:
+          SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
+          ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+        run: |
+          curl --fail --verbose \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Accept: application/json;odata=verbose" \
+            "$SHAREPOINT_SITE/_api/web"
+      
       - name: Set up Pandoc
         run: |
           sudo apt-get update
@@ -67,10 +50,7 @@ jobs:
         run: |
           chmod +x .github/scripts/build-pdf.sh
           .github/scripts/build-pdf.sh
-
-      - name: List Workspace Files
-        run: ls -la
-
+      
       - name: Upload PDF to SharePoint
         env:
           SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}  # e.g., "https://{companyName}.sharepoint.com/sites/{Section}"
