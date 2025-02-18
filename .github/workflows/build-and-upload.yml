@@ -30,6 +30,15 @@ jobs:
             exit 1
           fi
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      - name: Test Graph Auth
+        env:
+          ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+        run: |
+          curl --fail --verbose \
+          -X GET \
+          -H "Authorization: Bearer $ACCESS_TOKEN" \
+          'https://graph.microsoft.com/v1.0/users'
       
       - name: Test Access Token by Getting Site Info
         env:
