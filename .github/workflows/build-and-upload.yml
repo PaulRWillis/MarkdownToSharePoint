@@ -29,7 +29,6 @@ jobs:
           SHAREPOINT_USERNAME: ${{ secrets.SHAREPOINT_USERNAME }}
           SHAREPOINT_PASSWORD: ${{ secrets.SHAREPOINT_PASSWORD }}
         run: |
-          # Replace the URL path as needed for your SharePoint configuration.
-          curl --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
-          -T output.pdf \
-          "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
+          curl --fail --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
+            -T output.pdf \
+            "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
