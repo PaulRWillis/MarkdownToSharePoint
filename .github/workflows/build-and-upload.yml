@@ -31,6 +31,12 @@ jobs:
           fi
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
 
+      - name: DEBUG - Print Full Token
+        env:
+          ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+        run: |
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN"
+
       - name: Test Access Token by Getting Site Info
         env:
           SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
