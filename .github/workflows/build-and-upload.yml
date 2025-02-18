@@ -24,6 +24,11 @@ jobs:
 
       - name: List Workspace Files
         run: ls -la
+
+      - name: Debug - Show URL
+        run: |
+          FULL_URL="$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
+          echo "Constructed URL: $FULL_URL"
   
       - name: Upload PDF to SharePoint
         env:
