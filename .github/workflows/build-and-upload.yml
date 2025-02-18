@@ -12,20 +12,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Create Subfolder in SharePoint (if not exists)
+      - name: Get SharePoint Access Token
+        id: get_token
         env:
-          SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
-          SHAREPOINT_DOC_LIB: ${{ secrets.SHAREPOINT_DOC_LIB }}
-          SHAREPOINT_USERNAME: ${{ secrets.SHAREPOINT_USERNAME }}
-          SHAREPOINT_PASSWORD: ${{ secrets.SHAREPOINT_PASSWORD }}
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
         run: |
-          # Attempt to create the folder using a POST request.
-          # Note: This might return an error if the folder already exists; you can choose to ignore it.
-          curl --fail --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
-            -H "Accept: application/json;odata=verbose" \
-            -H "Content-Type: application/json;odata=verbose" \
-            -d "{\"__metadata\": {\"type\": \"SP.Folder\"}, \"ServerRelativeUrl\": \"$SHAREPOINT_DOC_LIB\"}" \
-            "$SHAREPOINT_SITE/_api/web/folders" || echo "Folder may already exist or creation failed"
+          TOKEN_RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&scope=https://tynesidetech.sharepoint.com/.default" \
+            https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token)
+          echo "$TOKEN_RESPONSE" > token.json
+          ACCESS_TOKEN=$(jq -r '.access_token' token.json)
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
      
       # - name: Verify Folder Exists in SharePoint
       #   env:
@@ -51,14 +51,26 @@ jobs:
 
       - name: List Workspace Files
         run: ls -la
-  
+
       - name: Upload PDF to SharePoint
         env:
-          SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
-          SHAREPOINT_DOC_LIB: ${{ secrets.SHAREPOINT_DOC_LIB }}
-          SHAREPOINT_USERNAME: ${{ secrets.SHAREPOINT_USERNAME }}
-          SHAREPOINT_PASSWORD: ${{ secrets.SHAREPOINT_PASSWORD }}
+          SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}  # e.g., "https://{companyName}.sharepoint.com/sites/{Section}"
+          SHAREPOINT_DOC_LIB: ${{ secrets.SHAREPOINT_DOC_LIB }}  # e.g., "/Shared Documents"
         run: |
-          curl --fail --verbose --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
-            -T output.pdf \
+          curl --fail --request POST \
+            --header "Authorization: Bearer $ACCESS_TOKEN" \
+            --header "Accept: application/json;odata=verbose" \
+            --header "Content-Type: application/json;odata=verbose" \
+            --data-binary @output.pdf \
             "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
+  
+      # - name: Upload PDF to SharePoint
+      #   env:
+      #     SHAREPOINT_SITE: ${{ secrets.SHAREPOINT_SITE }}
+      #     SHAREPOINT_DOC_LIB: ${{ secrets.SHAREPOINT_DOC_LIB }}
+      #     SHAREPOINT_USERNAME: ${{ secrets.SHAREPOINT_USERNAME }}
+      #     SHAREPOINT_PASSWORD: ${{ secrets.SHAREPOINT_PASSWORD }}
+      #   run: |
+      #     curl --fail --verbose --ntlm --user "$SHAREPOINT_USERNAME:$SHAREPOINT_PASSWORD" \
+      #       -T output.pdf \
+      #       "$SHAREPOINT_SITE/_api/web/GetFolderByServerRelativeUrl('$SHAREPOINT_DOC_LIB')/Files/add(url='output.pdf',overwrite=true)"
